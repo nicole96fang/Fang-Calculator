@@ -19,3 +19,395 @@ function bindConverter(){let kind='length';const fu=$('#fromUnit'),tu=$('#toUnit
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 $('#clearAll').onclick=()=>{if(confirm('Clear all locally saved calculator data?')){localStorage.removeItem(KEY);location.reload()}};
 function snow(){const el=document.createElement('span');el.className='snow';el.textContent='❄';el.style.left=Math.random()*100+'vw';el.style.setProperty('--drift',(Math.random()*160-80)+'px');el.style.animationDuration=(6+Math.random()*7)+'s';el.style.opacity=.35+Math.random()*.55;$('#snow').appendChild(el);setTimeout(()=>el.remove(),14000)}setInterval(snow,500);for(let i=0;i<8;i++)setTimeout(snow,i*250);render();
+/* ===== LIFE + MYR FX EXTENSION ===== */
+(()=>{
+  const oldRender=render;
+
+  const lifeHTML=()=>`<div class="life-grid">
+  <div class="panel card calc-card">
+    <h2>🌷 BMI</h2>
+    <input id="bw" class="input" type="number" placeholder="Weight kg">
+    <input id="bh" class="input" type="number" placeholder="Height cm">
+    <button class="calc-btn" id="bmiX">Calculate BMI</button>
+    <div class="calc-result" id="br">—</div>
+  </div>
+
+  <div class="panel card calc-card">
+    <h2>🔥 BMR</h2>
+    <select id="bg" class="select">
+      <option value="-161">Female</option>
+      <option value="5">Male</option>
+    </select>
+    <input id="ba" class="input" type="number" placeholder="Age">
+    <input id="bmw" class="input" type="number" placeholder="Weight kg">
+    <input id="bmh" class="input" type="number" placeholder="Height cm">
+    <button class="calc-btn" id="bmrX">Calculate BMR</button>
+    <div class="calc-result" id="bmrR">—</div>
+  </div>
+
+  <div class="panel card calc-card">
+    <h2>⚡ TDEE</h2>
+    <input id="tb" class="input" type="number" placeholder="BMR">
+    <select id="ta" class="select">
+      <option value="1.2">Sedentary · 1.20</option>
+      <option value="1.375">Light · 1.375</option>
+      <option value="1.55">Moderate · 1.55</option>
+      <option value="1.725">Very active · 1.725</option>
+      <option value="1.9">Extra active · 1.90</option>
+    </select>
+    <button class="calc-btn" id="tdeeX">Calculate TDEE</button>
+    <div class="calc-result" id="tr">—</div>
+  </div>
+
+  <div class="panel card calc-card">
+    <h2>🍓 Calories</h2>
+    <input id="ct" class="input" type="number" placeholder="TDEE">
+    <select id="cg" class="select">
+      <option value="1">Maintain</option>
+      <option value=".85">Weight loss · −15%</option>
+      <option value="1.1">Weight gain · +10%</option>
+    </select>
+    <button class="calc-btn" id="calX">Calculate Calories</button>
+    <div class="calc-result" id="cr">—</div>
+  </div>
+
+  <div class="panel card calc-card">
+    <h2>⚖️ Ideal Weight</h2>
+    <input id="ih" class="input" type="number" placeholder="Height cm">
+    <button class="calc-btn" id="idealX">Calculate Range</button>
+    <div class="calc-result" id="ir">—</div>
+  </div>
+
+  <div class="panel card calc-card">
+    <h2>📅 Countdown</h2>
+    <input id="cd" class="input" type="date">
+    <button class="calc-btn" id="countX">Count Days</button>
+    <div class="calc-result" id="cdr">—</div>
+  </div>
+
+  <div class="panel card calc-card">
+    <h2>⏰ Time Calculation</h2>
+    <div class="row">
+      <input id="ts" class="input" type="time" value="09:00">
+      <input id="te" class="input" type="time" value="17:30">
+    </div>
+    <button class="calc-btn" id="timeX">Calculate Time</button>
+    <div class="calc-result" id="timer">—</div>
+  </div>
+</div>
+<p class="notice">Lifestyle results are estimates for reference only.</p>`;
+
+  const currencies={
+    USD:'US Dollar',
+    SGD:'Singapore Dollar',
+    CNY:'Chinese Yuan',
+    JPY:'Japanese Yen',
+    KRW:'Korean Won',
+    THB:'Thai Baht',
+    TWD:'Taiwan Dollar',
+    HKD:'Hong Kong Dollar',
+    AUD:'Australian Dollar',
+    NZD:'New Zealand Dollar',
+    GBP:'British Pound',
+    EUR:'Euro',
+    CHF:'Swiss Franc',
+    CAD:'Canadian Dollar',
+    AED:'UAE Dirham',
+    INR:'Indian Rupee',
+    IDR:'Indonesian Rupiah',
+    VND:'Vietnamese Dong',
+    PHP:'Philippine Peso'
+  };
+
+  let rates={
+    USD:.253,
+    SGD:.323,
+    CNY:1.82,
+    JPY:37.7,
+    KRW:348,
+    THB:8.18,
+    TWD:8.05,
+    HKD:1.98,
+    AUD:.389,
+    NZD:.427,
+    GBP:.194,
+    EUR:.216,
+    CHF:.207,
+    CAD:.346,
+    AED:.93,
+    INR:21.1,
+    IDR:4090,
+    VND:6610,
+    PHP:14.5
+  };
+
+  const fxHTML=()=>`
+  <div class="panel card converter fx-panel">
+    <h2>🎐 Currency Exchange</h2>
+
+    <p class="fx-base">
+      Base currency: <b>MYR · Malaysian Ringgit</b>
+    </p>
+
+    <div class="row">
+      <input id="fxA" class="input" type="number" value="1">
+
+      <select id="fxC" class="select">
+        ${Object.keys(currencies).map(c=>
+          `<option value="${c}">${c} · ${currencies[c]}</option>`
+        ).join('')}
+      </select>
+    </div>
+
+    <div class="convert-result" id="fxR">—</div>
+
+    <div class="fx-grid">
+      ${Object.keys(currencies).map(c=>`
+        <button class="fx-chip" data-c="${c}">
+          <b>${c}</b>
+          <span>${currencies[c]}</span>
+          <em>1 MYR ≈ ${fmt(rates[c])} ${c}</em>
+        </button>
+      `).join('')}
+    </div>
+
+    <p class="notice" id="fxS">
+      Loading live rates…
+    </p>
+  </div>`;
+
+  const fmt=n=>
+    Number(n).toLocaleString(undefined,{
+      maximumFractionDigits:4
+    });
+
+  const mins=t=>{
+    const [h,m]=t.split(':').map(Number);
+    return h*60+m;
+  };
+
+  function bindLife(){
+
+    $('#bmiX').onclick=()=>{
+      let w=+$('#bw').value;
+      let h=+$('#bh').value/100;
+
+      if(w>0&&h>0){
+        let b=w/h**2;
+
+        $('#br').textContent=
+          b.toFixed(1)+' · '+
+          (b<18.5
+            ?'Underweight'
+            :b<25
+            ?'Healthy range'
+            :b<30
+            ?'Overweight'
+            :'Obesity');
+      }
+    };
+
+    $('#bmrX').onclick=()=>{
+      let a=+$('#ba').value;
+      let w=+$('#bmw').value;
+      let h=+$('#bmh').value;
+
+      if(a&&w&&h){
+        let b=
+          10*w+
+          6.25*h-
+          5*a+
+          (+$('#bg').value);
+
+        $('#bmrR').textContent=
+          Math.round(b)+' kcal/day';
+
+        $('#tb').value=Math.round(b);
+      }
+    };
+
+    $('#tdeeX').onclick=()=>{
+      let b=+$('#tb').value;
+
+      if(b>0){
+        $('#tr').textContent=
+          Math.round(b*+$('#ta').value)+
+          ' kcal/day';
+      }
+    };
+
+    $('#calX').onclick=()=>{
+      let t=+$('#ct').value;
+
+      if(t>0){
+        $('#cr').textContent=
+          Math.round(t*+$('#cg').value)+
+          ' kcal/day';
+      }
+    };
+
+    $('#idealX').onclick=()=>{
+      let h=+$('#ih').value/100;
+
+      if(h>0){
+        $('#ir').textContent=
+          (18.5*h*h).toFixed(1)+
+          '–'+
+          (24.9*h*h).toFixed(1)+
+          ' kg';
+      }
+    };
+
+    $('#countX').onclick=()=>{
+      if($('#cd').value){
+
+        let t=
+          new Date(
+            $('#cd').value+'T00:00:00'
+          );
+
+        let d=new Date();
+        d.setHours(0,0,0,0);
+
+        let n=
+          Math.round(
+            (t-d)/86400000
+          );
+
+        $('#cdr').textContent=
+          n>0
+          ?n+' days left'
+          :n===0
+          ?'Today 🎉'
+          :Math.abs(n)+' days ago';
+      }
+    };
+
+    $('#timeX').onclick=()=>{
+      let s=mins($('#ts').value);
+      let e=mins($('#te').value);
+
+      if(e<s)e+=1440;
+
+      let d=e-s;
+
+      $('#timer').textContent=
+        Math.floor(d/60)+
+        ' h '+
+        d%60+
+        ' min';
+    };
+  }
+
+  function bindFX(){
+
+    const update=()=>{
+      const amount=+$('#fxA').value||0;
+      const code=$('#fxC').value;
+
+      $('#fxR').textContent=
+        'MYR '+
+        fmt(amount)+
+        ' ≈ '+
+        fmt(amount*(rates[code]||0))+
+        ' '+
+        code;
+    };
+
+    $('#fxA').oninput=update;
+    $('#fxC').onchange=update;
+
+    document.querySelectorAll('[data-c]').forEach(b=>{
+      b.onclick=()=>{
+        $('#fxC').value=b.dataset.c;
+        update();
+      };
+    });
+
+    update();
+
+    fetch(
+      'https://api.frankfurter.dev/v1/latest?base=MYR'
+    )
+    .then(r=>r.json())
+    .then(d=>{
+
+      if(d.rates){
+
+        rates={
+          ...rates,
+          ...d.rates
+        };
+
+        document
+          .querySelectorAll('[data-c]')
+          .forEach(b=>{
+            b.querySelector('em').textContent=
+              '1 MYR ≈ '+
+              fmt(rates[b.dataset.c])+
+              ' '+
+              b.dataset.c;
+          });
+
+        update();
+
+        $('#fxS').textContent=
+          'Live rates loaded.';
+      }
+
+    })
+    .catch(()=>{
+      $('#fxS').textContent=
+        'Using built-in approximate rates.';
+    });
+  }
+
+  function add(){
+
+    const tabs=$('#tabs');
+
+    if(!tabs.querySelector('[data-extra="life"]')){
+
+      tabs.insertAdjacentHTML(
+        'beforeend',
+        '<button class="tab" data-extra="life">Life 🌷</button>'+
+        '<button class="tab" data-extra="fx">FX 🎐</button>'
+      );
+    }
+
+    tabs
+      .querySelectorAll('[data-extra]')
+      .forEach(b=>{
+        b.onclick=()=>{
+          state.mode=b.dataset.extra;
+          save();
+          render();
+        };
+      });
+
+    tabs
+      .querySelectorAll('[data-extra]')
+      .forEach(b=>{
+        b.classList.toggle(
+          'active',
+          b.dataset.extra===state.mode
+        );
+      });
+
+    if(state.mode==='life'){
+      $('#workspace').innerHTML=lifeHTML();
+      bindLife();
+    }
+
+    if(state.mode==='fx'){
+      $('#workspace').innerHTML=fxHTML();
+      bindFX();
+    }
+  }
+
+  render=function(){
+    oldRender();
+    add();
+  };
+
+})();
