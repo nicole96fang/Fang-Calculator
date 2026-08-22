@@ -411,3 +411,4 @@ function snow(){const el=document.createElement('span');el.className='snow';el.t
   };
 
 })();
+render();
