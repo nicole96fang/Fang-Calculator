@@ -21,3 +21,33 @@
 .key.equal:active{
   background:#ff8297;
 }.scientific{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:9px}.scientific button{padding:10px 2px;border:0;border-radius:16px;background:#fff0f3;color:#9b5360;font-weight:700}.panel{padding:14px}.panel h2{font-size:16px;margin:2px 0 10px}.history{max-height:390px;overflow:auto}.history-item{padding:11px 12px;border-radius:17px;background:rgba(255,255,255,.75);margin:7px 0;display:flex;justify-content:space-between;gap:10px;font-size:13px}.empty{opacity:.55;text-align:center;padding:30px}.converter{display:grid;gap:10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.input,.select{width:100%;padding:14px;border:0;border-radius:17px;background:#fff;box-shadow:inset 0 0 0 2px rgba(75,167,202,.08);font:inherit;color:var(--ink)}.convert-result{padding:16px;border-radius:19px;background:#eaf8fc;font-size:22px;font-weight:800;text-align:center}.mode-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.mode-btn{padding:12px}.mode-btn.active{background:var(--blue);color:#fff}.memory{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:9px}.memory button{padding:10px 2px;border:0;border-radius:15px;background:#edf9fc;color:#287c98;font-weight:800}.notice{font-size:12px;opacity:.62;margin:8px 2px}.footer{margin-top:12px}footer{display:flex;justify-content:space-between;font-size:11px;opacity:.6;padding:12px 5px}.snow{position:fixed;top:-20px;pointer-events:none;z-index:0;color:#fff;font-size:14px;animation:fall linear forwards;text-shadow:0 0 5px rgba(255,255,255,.8)}@keyframes fall{to{transform:translate3d(var(--drift),110vh,0) rotate(360deg)}}#snow{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:10}@media(min-width:621px){.app{padding-top:28px}}@media(max-width:390px){.key{min-height:57px}.display #result{font-size:34px}.tabs{grid-template-columns:repeat(2,1fr)}}
+.pressed{
+  transform:scale(.92) !important;
+  filter:brightness(.82) !important;
+  box-shadow:0 2px 8px rgba(35,72,90,.28) !important;
+}
+
+.memory button.pressed{
+  background:#9edced !important;
+  color:#174f66 !important;
+}
+
+.key.pressed{
+  background:#c9edf5 !important;
+  color:#174f66 !important;
+}
+
+.key.ac.pressed{
+  background:#ffb6c1 !important;
+  color:#8f4655 !important;
+}
+
+.key.equal.pressed{
+  background:#ff7f96 !important;
+  color:#fff !important;
+}
+
+.key.op.pressed{
+  background:#9edced !important;
+  color:#17627e !important;
+}
